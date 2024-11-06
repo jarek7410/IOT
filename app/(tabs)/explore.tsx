@@ -2,7 +2,10 @@ import React, {useEffect, useState} from 'react';
 import {StyleSheet, View, Text, Button, PermissionsAndroid} from 'react-native';
 import MapView, {Circle, Marker, UrlTile} from 'react-native-maps';
 import {ColorsTransparent} from "@/assets/ColorsTransparent";
-import RNSoundLevel from 'react-native-sound-level'
+import rnSoundLevelMonitor, {
+    SoundLevelResultType
+} from 'react-native-sound-level-monitor';
+import soundLevelMonitor from "react-native-sound-level-monitor";
 
 
 const MONITOR_INTERVAL = 500 // in ms
@@ -40,17 +43,16 @@ const [state, setState] = useState([
         );
         if (granted === PermissionsAndroid.RESULTS.GRANTED) {
             console.log('You can use the camera');
-                RNSoundLevel.onNewFrame = (data) => {
-                    // see "Returned data" section below
-                    console.log('Sound level info', data)
-                }
-
+                // rnSoundLevelMonitor(monitorInterval);
                 // you may also specify a monitor interval (default is 250ms)
-
-                RNSoundLevel.start({
-                    monitorInterval: MONITOR_INTERVAL,
-                    samplingRate: 22050, // default is 22050
-                })
+            soundLevelMonitor(250).start();
+            // soundLevelMonitor().start();
+            const removeThisListener = soundLevelMonitor().addListener(
+                (data: SoundLevelResultType) => {
+                    setSoundLevelText(data.value+" "+data);
+                    console.log('new frame', data);
+                }
+            );
         } else {
             console.log('Camera permission denied');
         }
@@ -62,7 +64,7 @@ const [state, setState] = useState([
     useEffect(() => {
         return () => {
             // don't forget to stop it
-            RNSoundLevel.stop()
+            soundLevelMonitor().stop();
         }
     }, [])
 
